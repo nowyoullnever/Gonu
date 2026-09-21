@@ -90,7 +90,7 @@ export const en = {
     endpoint: "Endpoints must be on the board.",
     samePoint: "Choose two different points.",
     roadExists: "This road already exists.",
-    roadLong: "Too long: maximum length is √65.",
+    roadLong: "Too long: maximum length is √10.",
     roadThroughPoint: "A road cannot pass through another board point.",
     gameEnded: "The game has ended.",
     chooseHome: "Choose an empty point on your home row.",
@@ -110,12 +110,12 @@ export const en = {
       {
         title: "BUILD ROADS",
         diagram: "A ───── B",
-        copy: "Connect any two points, with or without stones. Roads are permanent, shared, and undirected. Maximum length: √65. A road cannot pass through another board point: (4,1) is legal; (2,0) is not. Crossing roads do not connect.",
+        copy: "Connect any two points, with or without stones. Roads are permanent, shared, and undirected. Maximum length: √10. A road cannot pass through another board point: (3,1) is legal; (2,0) is not. Crossing roads do not connect.",
       },
       {
         title: "MOVE",
         diagram: "● ───── · → ●",
-        copy: "Select your stone, then an empty endpoint connected by one road. A length-1 road and a length-√65 road each cost one action. You may immediately use a road just built this turn.",
+        copy: "Select your stone, then an empty endpoint connected by one road. A length-1 road and a length-√10 road each cost one action. You may immediately use a road just built this turn.",
       },
       {
         title: "CAPTURE",

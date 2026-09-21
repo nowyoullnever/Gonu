@@ -67,18 +67,29 @@ export function fullMatch() {
     const direct =
       hasRoad(session.game, from, to) || canBuildRoad(session.game, from, to);
     if (!direct) {
-      const via = points.find(
-        (p) =>
-          !stoneAt(session.game, p) &&
-          p.row > 0 &&
-          p.row < 9 &&
-          (hasRoad(session.game, from, p) ||
-            canBuildRoad(session.game, from, p)) &&
-          (hasRoad(session.game, p, to) || canBuildRoad(session.game, p, to)),
-      );
-      if (!via) throw new Error("No route");
-      go(id, via);
-      go(id, to, spawn);
+      const route = new Map<string, Point>([[coordinate(from), from]]);
+      const queue = [from];
+      while (queue.length && !route.has(coordinate(to))) {
+        const current = queue.shift()!;
+        for (const candidate of points) {
+          const key = coordinate(candidate);
+          if (
+            route.has(key) ||
+            (stoneAt(session.game, candidate) && !samePoint(candidate, to)) ||
+            (!hasRoad(session.game, current, candidate) &&
+              !canBuildRoad(session.game, current, candidate))
+          )
+            continue;
+          route.set(key, current);
+          queue.push(candidate);
+        }
+      }
+      if (!route.has(coordinate(to))) throw new Error("No route");
+      const path = [to];
+      while (!samePoint(path[0], from))
+        path.unshift(route.get(coordinate(path[0]))!);
+      for (const step of path.slice(1))
+        go(id, step, samePoint(step, to) ? spawn : undefined);
       return;
     }
     turn(player);

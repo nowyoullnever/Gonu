@@ -11,7 +11,7 @@ export function roadError(s: GameState, a: Point, b: Point): string | null {
   if (!inBounds(a) || !inBounds(b)) return "error.endpoint";
   if (samePoint(a, b)) return "error.samePoint";
   if (hasRoad(s, a, b)) return "error.roadExists";
-  if (distanceSquared(a, b) > 65) return "error.roadLong";
+  if (distanceSquared(a, b) > 10) return "error.roadLong";
   if (gcd(Math.abs(a.row - b.row), Math.abs(a.col - b.col)) !== 1)
     return "error.roadThroughPoint";
   return null;

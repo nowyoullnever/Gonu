@@ -29,9 +29,9 @@ Open the `/Gonu/` URL printed by Vite. Production files are written to `dist/`.
 
 ### Road geometry
 
-For endpoint differences `dx, dy`, a road is legal when endpoints are distinct and in bounds, no undirected duplicate exists, `dx² + dy² <= 65`, and `gcd(abs(dx), abs(dy)) === 1`.
+For endpoint differences `dx, dy`, a road is legal when endpoints are distinct and in bounds, no undirected duplicate exists, `dx² + dy² <= 10`, and `gcd(abs(dx), abs(dy)) === 1`.
 
-Thus `(1,0)`, `(1,1)`, `(4,1)`, `(5,1)`, `(7,4)`, and `(8,1)` are legal. `(2,0)`, `(2,2)`, and `(4,2)` pass through lattice points and are illegal; `(8,2)` is too long. Crossing roads create no junction, stop, or transfer point. One road always costs **one MOVE**, whether its length is 1 or √65.
+Thus `(1,0)`, `(0,1)`, `(1,1)`, `(2,1)`, `(1,2)`, `(3,1)`, and `(1,3)` are legal. `(2,0)`, `(0,2)`, and `(2,2)` pass through lattice points and are illegal; `(3,2)`, `(2,3)`, and `(4,1)` are too long. Crossing roads create no junction, stop, or transfer point. One road always costs **one MOVE**, whether its length is 1, √2, √5, or √10.
 
 ### Capture and victory
 
@@ -70,7 +70,7 @@ tests/      Rule tests, DOM interaction tests, complete legal match/replay
 
 ## Tests and verification
 
-`npm test` runs Vitest, including geometry boundaries, shared graph movement, crossings without connectivity, capture choice/suicide priority, reproduction/carrier resets, atomic undo, JSON replay, and rendered-button interactions. `tests/matchScenario.ts` creates a full cooperative match from the actual initial position using only legal commands. Its 69 commands cover capture, suicide, birth, carrier loss, a new lineage, and the final win. DOM tests replay the same match and verify rematch.
+`npm test` runs Vitest, including √10 geometry boundaries, shared graph movement, crossings without connectivity, capture choice/suicide priority, reproduction/carrier resets, atomic undo, JSON replay, and rendered-button interactions. `tests/matchScenario.ts` creates a full cooperative match from the actual initial position using only legal commands. It covers capture, suicide, birth, carrier loss, a new lineage, and the final win. DOM tests replay the same match and verify rematch.
 
 See [verification notes](docs/verification.md) for browser checks and rule interpretations. No production debug interface or seeded game is exposed.
 

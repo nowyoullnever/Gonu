@@ -3,7 +3,7 @@
 ## Automated
 
 - Vitest: pure engine and local-session coverage, DOM button-level integration.
-- Full match: 69 serializable commands from `createGame()`; no fixture injection. Replay after JSON serialization equals the original final state.
+- Full match: serializable commands from `createGame()`; no fixture injection. Replay after JSON serialization equals the original final state.
 - Production: TypeScript strict check and Vite `/Gonu/` build.
 
 ## Actual browser match
@@ -11,7 +11,7 @@
 Verified in the Codex browser at `http://127.0.0.1:5173/Gonu/` on 2026-09-21, using the real displayed buttons:
 
 1. Start through NEW GAME → LOCAL TWO PLAYER.
-2. Build and traverse arbitrary-angle roads. H2 → I10 is length √65.
+2. Build and traverse arbitrary-angle roads. C1 → D4 is length √10.
 3. Spend three actions and confirm automatic handoff.
 4. Black D1 → G5 completes a sandwich and captures White at F5.
 5. White D10 → F5 voluntarily suicides into that sandwich.

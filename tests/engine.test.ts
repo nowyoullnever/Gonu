@@ -43,15 +43,17 @@ describe("roads", () => {
     [1, 0],
     [0, 1],
     [1, 1],
-    [4, 1],
-    [5, 1],
-    [7, 4],
-    [8, 1],
+    [2, 1],
+    [1, 2],
+    [3, 1],
+    [1, 3],
   ])("accepts (%i,%i)", (r, c) =>
     expect(canBuildRoad(createGame(), p(0, 0), p(r, c))).toBe(true),
   );
   it.each([
-    [8, 2],
+    [3, 2],
+    [2, 3],
+    [4, 1],
     [2, 0],
     [2, 2],
     [4, 2],
@@ -66,12 +68,12 @@ describe("roads", () => {
     let s = applyAction(createGame(), {
       type: "build-road",
       from: p(0, 2),
-      to: p(3, 4),
+      to: p(3, 3),
     });
-    expect(canBuildRoad(s, p(0, 2), p(3, 4))).toBe(false);
-    expect(canBuildRoad(s, p(3, 4), p(0, 2))).toBe(false);
-    s = applyAction(s, { type: "build-road", from: p(0, 4), to: p(3, 2) });
-    expect(getLegalMoves(s, "s1")).toEqual([p(3, 4)]);
+    expect(canBuildRoad(s, p(0, 2), p(3, 3))).toBe(false);
+    expect(canBuildRoad(s, p(3, 3), p(0, 2))).toBe(false);
+    s = applyAction(s, { type: "build-road", from: p(0, 3), to: p(3, 2) });
+    expect(getLegalMoves(s, "s1")).toEqual([p(3, 3)]);
     expect(hasRoad(s, p(0, 2), p(3, 2))).toBe(false);
   });
   it("can build between occupied endpoints without requiring ownership", () =>
@@ -100,13 +102,13 @@ describe("moves and turns", () => {
     s.roads = [];
     expect(JSON.stringify(s)).toBe(copy);
   });
-  it("new road is immediately usable and costs one action even at √65", () => {
+  it("new road is immediately usable and costs one action even at √10", () => {
     let s = applyAction(createGame(), {
       type: "build-road",
       from: p(0, 2),
-      to: p(8, 3),
+      to: p(3, 3),
     });
-    s = applyAction(s, { type: "move", stoneId: "s1", to: p(8, 3) });
+    s = applyAction(s, { type: "move", stoneId: "s1", to: p(3, 3) });
     expect(s.actionsRemaining).toBe(1);
     expect(s.stones[0].id).toBe("s1");
   });
