@@ -1,13 +1,48 @@
 import { LocalGameSession } from "../local/localGame";
-import type { GameAction, Point } from "../game/types";
+import type { GameAction, GameEvent, Point } from "../game/types";
 import { coordinate, roadLength, samePoint } from "../game/geometry";
 import { getLegalMoves, stoneAt } from "../game/movement";
 import { getLegalRoadTargets, roadError } from "../game/roads";
 import { getReproductionPoints } from "../game/reproduction";
+import { playerName, playerTurn, playerWins, t } from "../i18n/i18n";
 import { BoardView } from "./boardView";
 import { openTutorial } from "./tutorial";
 import { openSettings } from "./lobby";
 import { openDialog } from "./dialog";
+
+function eventText(event: GameEvent) {
+  if (event.type === "road")
+    return `${t("action.road")} ${coordinate(event.from)}–${coordinate(event.to)}`;
+  if (event.type === "move")
+    return `${playerName(event.player)} ${coordinate(event.from)} → ${coordinate(event.to)}`;
+  if (event.type === "capture") {
+    if (event.selfCapture)
+      return t(
+        event.captured === "black"
+          ? "capture.blackSelfCaptured"
+          : "capture.whiteSelfCaptured",
+      );
+    return t(
+      event.captured === "white"
+        ? "capture.blackCapturedWhite"
+        : "capture.whiteCapturedBlack",
+    );
+  }
+  if (event.type === "reproduction")
+    return t(
+      event.player === "black"
+        ? "reproduction.blackReproduced"
+        : "reproduction.whiteReproduced",
+    );
+  if (event.type === "lineage-reset")
+    return t(
+      event.player === "black"
+        ? "reproduction.blackLineageReset"
+        : "reproduction.whiteLineageReset",
+    );
+  return playerWins(event.player);
+}
+
 export function localGameView(
   root: HTMLElement,
   back: () => void,
@@ -16,8 +51,7 @@ export function localGameView(
   let mode: "move" | "road" = "road",
     selected: Point | null = null;
   root.dataset.mode = "local";
-  root.innerHTML =
-    '<header><h1>Go!nu</h1><span>LOCAL TWO PLAYER</span></header><section class="game-hud"><h2 id="turn"></h2><div id="actions"></div><div id="counts"></div></section><div class="modes"><button id="move">MOVE</button><button id="road">ROAD</button></div><p id="instruction" role="status" aria-live="polite"></p><div id="board-host"></div><p id="preview-info">&nbsp;</p><p id="events" role="log" aria-live="polite"></p><section id="result" aria-live="assertive" hidden></section><footer><button id="undo">UNDO</button><button id="clear">CANCEL SELECTION</button><button id="back">BACK</button><button id="help">HOW TO PLAY</button><button id="settings">SETTINGS</button></footer>';
+  root.innerHTML = `<header><h1>Go!nu</h1><span>${t("general.localTwoPlayer")}</span></header><section class="game-hud"><h2 id="turn"></h2><div id="actions"></div><div id="counts"></div></section><div class="modes"><button id="move">${t("action.move")}</button><button id="road">${t("action.road")}</button></div><p id="instruction" role="status" aria-live="polite"></p><div id="board-host"></div><p id="preview-info">&nbsp;</p><p id="events" role="log" aria-live="polite"></p><section id="result" aria-live="assertive" hidden></section><footer><button id="undo">${t("action.undo")}</button><button id="clear">${t("general.cancel")}</button><button id="back">${t("general.back")}</button><button id="help">${t("general.howToPlay")}</button><button id="settings">${t("general.settings")}</button></footer>`;
   const el = (id: string) => root.querySelector<HTMLElement>(`#${id}`)!;
   const board = new BoardView({ selected: null, targets: [], click, hover });
   el("board-host").append(board.element);
@@ -37,43 +71,52 @@ export function localGameView(
   function render() {
     const s = session.game;
     el("turn").textContent = s.winner
-      ? `${s.winner.toUpperCase()} WINS`
-      : `${s.currentPlayer.toUpperCase()}'S TURN`;
+      ? playerWins(s.winner)
+      : playerTurn(s.currentPlayer);
     el("actions").textContent =
-      `ACTIONS  ${"● ".repeat(s.actionsRemaining)}${"○ ".repeat(3 - s.actionsRemaining)}`;
+      `${t("game.actions")}  ${"● ".repeat(s.actionsRemaining)}${"○ ".repeat(3 - s.actionsRemaining)}`;
     el("actions").setAttribute(
       "aria-label",
-      `${s.actionsRemaining} actions remaining`,
+      t("game.actionsRemaining", { count: s.actionsRemaining }),
     );
     el("counts").innerHTML =
-      `<span><i class="small-stone black"></i> BLACK ${s.stones.filter((x) => x.player === "black").length}</span><span><i class="small-stone white"></i> WHITE ${s.stones.filter((x) => x.player === "white").length}</span>`;
+      `<span><i class="small-stone black"></i> ${playerName("black")} ${s.stones.filter((x) => x.player === "black").length}</span><span><i class="small-stone white"></i> ${playerName("white")} ${s.stones.filter((x) => x.player === "white").length}</span>`;
     el("instruction").textContent = s.winner
-      ? "The match is complete."
+      ? t("game.matchComplete")
       : s.pending?.type === "reproduction"
-        ? `PLACE NEW ${s.currentPlayer.toUpperCase()} STONE — choose your home row`
+        ? t(
+            s.currentPlayer === "black"
+              ? "reproduction.placeBlack"
+              : "reproduction.placeWhite",
+          )
         : s.pending?.type === "capture"
-          ? "CHOOSE A STONE TO CAPTURE — select one × target"
+          ? t("capture.choose")
           : mode === "road"
             ? selected
-              ? `ROAD FROM ${coordinate(selected)} — choose a ringed point`
-              : "BUILD A ROAD — select any first endpoint"
+              ? t("action.roadFrom", { point: coordinate(selected) })
+              : t("action.buildRoad")
             : selected
-              ? "MOVE — choose a ringed destination"
-              : "MOVE — select one of your stones";
+              ? t("action.moveDestination")
+              : t("action.moveSelect");
     for (const m of ["move", "road"]) {
-      const b = el(m) as HTMLButtonElement;
-      b.setAttribute("aria-pressed", String(m === mode));
-      b.disabled = Boolean(s.pending || s.winner);
+      const button = el(m) as HTMLButtonElement;
+      button.setAttribute("aria-pressed", String(m === mode));
+      button.disabled = Boolean(s.pending || s.winner);
     }
     (el("undo") as HTMLButtonElement).disabled = !session.canUndo;
     (el("clear") as HTMLButtonElement).disabled = !selected;
-    el("events").textContent = s.events.join(" ");
+    el("events").textContent = s.events.map(eventText).join(" ");
     el("preview-info").textContent = "\u00a0";
-    board.update(s, selected, legalPoints());
+    board.update(
+      s,
+      selected,
+      legalPoints(),
+      mode === "road" ? "a11y.legalRoad" : "a11y.legalDestination",
+    );
     el("result").hidden = !s.winner;
     if (s.winner) {
       el("result").innerHTML =
-        `<h2>${s.winner.toUpperCase()} WINS</h2><button id="rematch">REMATCH</button><button id="return">BACK TO LOBBY</button>`;
+        `<h2>${playerWins(s.winner)}</h2><button id="rematch">${t("game.rematch")}</button><button id="return">${t("game.backToLobby")}</button>`;
       el("rematch").onclick = () => {
         session.rematch();
         selected = null;
@@ -89,8 +132,8 @@ export function localGameView(
       session.dispatch(action);
       selected = null;
       render();
-    } catch (e) {
-      el("instruction").textContent = (e as Error).message;
+    } catch (error) {
+      el("instruction").textContent = t((error as Error).message);
     }
   }
   function click(p: Point) {
@@ -119,8 +162,7 @@ export function localGameView(
       selected = p;
       render();
       if (!legalPoints().length)
-        el("instruction").textContent =
-          "No empty destination along a road. Select another stone or build a road.";
+        el("instruction").textContent = t("action.noDestination");
     } else if (selected)
       dispatch({ type: "move", stoneId: stoneAt(s, selected)!.id, to: p });
   }
@@ -135,7 +177,7 @@ export function localGameView(
     const error = p ? roadError(session.game, selected, p) : null;
     board.showPreview(selected, p, !error);
     el("preview-info").textContent = p
-      ? `${error ? "ILLEGAL" : "LEGAL"} · length ${roadLength(selected, p)}${error ? " · " + error : ""}`
+      ? `${t(error ? "action.illegal" : "action.legal")} · ${t("action.length", { length: roadLength(selected, p) })}${error ? " · " + t(error) : ""}`
       : "\u00a0";
   }
   for (const m of ["move", "road"] as const)
@@ -145,21 +187,25 @@ export function localGameView(
       render();
     };
   el("undo").onclick = () => {
-    session.undo();
-    selected = null;
-    render();
+    try {
+      session.undo();
+      selected = null;
+      render();
+    } catch (error) {
+      el("instruction").textContent = t((error as Error).message);
+    }
   };
   el("clear").onclick = () => {
     selected = null;
     render();
   };
   el("back").onclick = () => {
-    const d = openDialog(
-      "LEAVE THIS GAME?",
-      '<p>Your local match will be discarded.</p><button id="leave">BACK TO LOBBY</button>',
+    const dialog = openDialog(
+      t("game.leaveGame"),
+      `<p>${t("game.leaveGameNote")}</p><button id="leave">${t("game.backToLobby")}</button>`,
     );
-    d.querySelector<HTMLButtonElement>("#leave")!.onclick = () => {
-      d.close();
+    dialog.querySelector<HTMLButtonElement>("#leave")!.onclick = () => {
+      dialog.close();
       back();
     };
   };

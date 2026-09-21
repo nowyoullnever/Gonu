@@ -1,20 +1,18 @@
 import type { GameAction, GameState, MoveContext } from "./types";
 import { cloneState } from "./gameState";
-import { coordinate, samePoint } from "./geometry";
+import { samePoint } from "./geometry";
 import { getLegalMoves } from "./movement";
 import { roadError } from "./roads";
 import { getCaptureCandidates, isSandwiched, opponent } from "./capture";
 import { getReproductionPoints, triggersReproduction } from "./reproduction";
 
-function removeStone(s: GameState, id: string) {
+function removeStone(s: GameState, id: string, selfCapture = false) {
   const stone = s.stones.find((x) => x.id === id)!;
   s.stones = s.stones.filter((x) => x.id !== id);
-  s.events.push(
-    `${stone.player.toUpperCase()} captured at ${coordinate(stone)}.`,
-  );
+  s.events.push({ type: "capture", captured: stone.player, selfCapture });
   if (s.reproductionCarrier[stone.player] === id) {
     s.reproductionCarrier[stone.player] = null;
-    s.events.push(`${stone.player.toUpperCase()} lineage resets.`);
+    s.events.push({ type: "lineage-reset", player: stone.player });
   }
 }
 function finish(s: GameState) {
@@ -24,7 +22,7 @@ function finish(s: GameState) {
   s.actionsRemaining--;
   if (s.winner) {
     s.actionsRemaining = 0;
-    s.events.push(`${s.winner.toUpperCase()} WINS`);
+    s.events.push({ type: "win", player: s.winner });
   } else if (s.actionsRemaining === 0) {
     s.currentPlayer = opponent(s.currentPlayer);
     s.actionsRemaining = 3;
@@ -36,7 +34,7 @@ function resolve(s: GameState, context: MoveContext) {
   const moved = s.stones.find((x) => x.id === context.movedId)!;
   // Mandatory suicide takes the action's single capture slot.
   if (isSandwiched(s, moved)) {
-    removeStone(s, moved.id);
+    removeStone(s, moved.id, true);
     finish(s);
     return;
   }
@@ -50,13 +48,13 @@ function resolve(s: GameState, context: MoveContext) {
 }
 /** Pure reducer. Invalid commands throw without changing the input. */
 export function applyAction(state: GameState, action: GameAction): GameState {
-  if (state.winner) throw new Error("The game has ended.");
+  if (state.winner) throw new Error("error.gameEnded");
   const s = cloneState(state);
   s.revision++;
   if (s.pending) {
     if (s.pending.type === "reproduction" && action.type === "reproduce") {
       if (!getReproductionPoints(s).some((p) => samePoint(p, action.at)))
-        throw new Error("Choose an empty point on your home row.");
+        throw new Error("error.chooseHome");
       const context = s.pending.context;
       const child = {
         ...action.at,
@@ -65,17 +63,15 @@ export function applyAction(state: GameState, action: GameAction): GameState {
       };
       s.stones.push(child);
       s.reproductionCarrier[s.currentPlayer] = child.id;
-      s.events.push(
-        `New ${s.currentPlayer.toUpperCase()} carrier at ${coordinate(child)}.`,
-      );
+      s.events.push({ type: "reproduction", player: s.currentPlayer });
       context.affected.push({ ...action.at });
       resolve(s, context);
     } else if (s.pending.type === "capture" && action.type === "capture") {
       if (!s.pending.targetIds.includes(action.stoneId))
-        throw new Error("Choose a highlighted capture target.");
+        throw new Error("error.chooseCapture");
       removeStone(s, action.stoneId);
       finish(s);
-    } else throw new Error("Complete the pending choice first.");
+    } else throw new Error("error.completePending");
     return s;
   }
   s.events = [];
@@ -88,24 +84,25 @@ export function applyAction(state: GameState, action: GameAction): GameState {
       from: { ...action.from },
       to: { ...action.to },
     };
-    s.events.push(
-      `Road ${coordinate(action.from)}–${coordinate(action.to)} built.`,
-    );
+    s.events.push({ type: "road", from: action.from, to: action.to });
     finish(s);
   } else if (action.type === "move") {
     if (!getLegalMoves(s, action.stoneId).some((p) => samePoint(p, action.to)))
-      throw new Error("Move your stone along one road to an empty point.");
+      throw new Error("error.invalidMove");
     const stone = s.stones.find((x) => x.id === action.stoneId)!;
     const from = { row: stone.row, col: stone.col };
     Object.assign(stone, action.to);
     s.lastAction = { type: "move", from, to: { ...action.to } };
-    s.events.push(
-      `${s.currentPlayer.toUpperCase()} ${coordinate(from)} → ${coordinate(stone)}.`,
-    );
+    s.events.push({
+      type: "move",
+      player: s.currentPlayer,
+      from,
+      to: { ...stone },
+    });
     const context = { movedId: stone.id, affected: [{ ...action.to }] };
     if (triggersReproduction(s, stone, from))
       s.pending = { type: "reproduction", context };
     else resolve(s, context);
-  } else throw new Error("No choice is pending.");
+  } else throw new Error("error.completePending");
   return s;
 }

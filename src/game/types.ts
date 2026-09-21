@@ -15,6 +15,13 @@ export interface MoveContext {
   movedId: string;
   affected: Point[];
 }
+export type GameEvent =
+  | { type: "road"; from: Point; to: Point }
+  | { type: "move"; player: Player; from: Point; to: Point }
+  | { type: "capture"; captured: Player; selfCapture: boolean }
+  | { type: "reproduction"; player: Player }
+  | { type: "lineage-reset"; player: Player }
+  | { type: "win"; player: Player };
 export type Pending =
   | { type: "reproduction"; context: MoveContext }
   | { type: "capture"; targetIds: string[] };
@@ -29,7 +36,7 @@ export interface GameState {
   revision: number;
   turn: number;
   nextStoneId: number;
-  events: string[];
+  events: GameEvent[];
   lastAction: { type: "move" | "build-road"; from: Point; to: Point } | null;
 }
 /** Choices are commands too: intermediate states can be serialized and replayed. */

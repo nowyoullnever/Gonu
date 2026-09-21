@@ -69,6 +69,7 @@ button {
   padding: 12px 16px;
   cursor: pointer;
   min-height: 44px;
+  word-break: keep-all;
 }
 button:hover:not(:disabled) {
   background: var(--hover);
@@ -432,6 +433,22 @@ dialog h2 {
   display: flex;
   justify-content: center;
   gap: 8px;
+}
+.language-options {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.language-options button {
+  font-size: 0.8rem;
+  min-width: 100px;
+}
+html[lang="ko"] {
+  font-size: 15px;
+}
+html[lang="ko"] .lesson p {
+  line-height: 1.9;
+  word-break: keep-all;
 }
 .theme-options button {
   font-size: 0.8rem;

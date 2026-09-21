@@ -1,7 +1,9 @@
+import { t } from "../i18n/i18n";
+
 export function openDialog(title: string, body: string) {
   const dialog = document.createElement("dialog");
   dialog.setAttribute("aria-labelledby", "dialog-title");
-  dialog.innerHTML = `<button class="close" aria-label="Close dialog">×</button><h2 id="dialog-title">${title}</h2>${body}`;
+  dialog.innerHTML = `<button class="close" aria-label="${t("general.close")}">×</button><h2 id="dialog-title">${title}</h2>${body}`;
   document.body.append(dialog);
   dialog.querySelector<HTMLButtonElement>(".close")!.onclick = () =>
     dialog.close();

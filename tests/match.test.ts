@@ -8,7 +8,9 @@ it("plays a complete legal match: roads, long moves, capture, suicide, birth, re
   expect(secondCarrier).toBeTruthy();
   expect(firstCarrier).not.toBe(secondCarrier);
   expect(
-    transcript.some((x) => x.events.some((e) => e === "BLACK lineage resets.")),
+    transcript.some((x) =>
+      x.events.some((e) => e.type === "lineage-reset" && e.player === "black"),
+    ),
   ).toBe(true);
   expect(session.game.winner).toBe("black");
   expect(session.game.stones.every((x) => x.player === "black")).toBe(true);

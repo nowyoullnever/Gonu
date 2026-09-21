@@ -1,6 +1,7 @@
 import type { GameState, Point } from "../game/types";
 import { coordinate, points, samePoint } from "../game/geometry";
 import { stoneAt } from "../game/movement";
+import { playerName, t } from "../i18n/i18n";
 const ns = "http://www.w3.org/2000/svg";
 const position = (p: Point) => ({ x: 50 + p.col * 50, y: 50 + p.row * 50 });
 export interface BoardInteraction {
@@ -19,7 +20,7 @@ export class BoardView {
   private pieceNodes = new Map<string, HTMLElement>();
   constructor(private interaction: BoardInteraction) {
     this.element.className = "board";
-    this.element.setAttribute("aria-label", "10 by 10 point board");
+    this.element.setAttribute("aria-label", t("a11y.board"));
     this.roads.setAttribute("viewBox", "0 0 550 550");
     this.roads.setAttribute("aria-hidden", "true");
     this.pieces.className = "pieces";
@@ -67,7 +68,12 @@ export class BoardView {
         this.element.append(label);
       }
   }
-  update(s: GameState, selected: Point | null, legal: Point[]) {
+  update(
+    s: GameState,
+    selected: Point | null,
+    legal: Point[],
+    targetLabel = "a11y.legalDestination",
+  ) {
     this.roads.replaceChildren();
     for (const road of s.roads) {
       const line = document.createElementNS(ns, "line"),
@@ -115,10 +121,20 @@ export class BoardView {
         target = legal.some((x) => samePoint(x, p));
       button.className = `point${stone ? " occupied" : ""}${selected && samePoint(selected, p) ? " selected" : ""}${target ? " legal" : ""}${s.pending?.type === "capture" && target ? " capture-target" : ""}`;
       button.disabled = Boolean(s.winner);
-      button.setAttribute(
-        "aria-label",
-        `${coordinate(p)}, ${stone ? stone.player + " stone" : "empty"}${stone && s.reproductionCarrier[stone.player] === stone.id ? ", reproduction carrier" : ""}${target ? ", " + (s.pending?.type === "capture" ? "capture target" : "legal destination") : ""}`,
-      );
+      const labels = [
+        coordinate(p),
+        stone
+          ? `${playerName(stone.player)} ${t("a11y.stone")}`
+          : t("a11y.empty"),
+      ];
+      if (stone && s.reproductionCarrier[stone.player] === stone.id)
+        labels.push(t("reproduction.carrier"));
+      if (selected && samePoint(selected, p)) labels.push(t("a11y.selected"));
+      if (target)
+        labels.push(
+          t(s.pending?.type === "capture" ? "a11y.captureTarget" : targetLabel),
+        );
+      button.setAttribute("aria-label", labels.join(", "));
       button.setAttribute(
         "aria-pressed",
         String(Boolean(selected && samePoint(selected, p))),

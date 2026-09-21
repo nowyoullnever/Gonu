@@ -3,7 +3,7 @@ import { canBuildRoad, hasRoad } from "../src/game/roads";
 import { points, samePoint, coordinate } from "../src/game/geometry";
 import { stoneAt } from "../src/game/movement";
 import { getReproductionPoints } from "../src/game/reproduction";
-import type { GameAction, Player, Point } from "../src/game/types";
+import type { GameAction, GameEvent, Player, Point } from "../src/game/types";
 
 /** Cooperative, legal hot-seat match from the real initial position. No state injection. */
 export function fullMatch() {
@@ -11,7 +11,7 @@ export function fullMatch() {
   const transcript: {
     action: GameAction;
     clicks: string[];
-    events: string[];
+    events: GameEvent[];
     turn: number;
   }[] = [];
   function dispatch(action: GameAction) {

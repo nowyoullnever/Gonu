@@ -20,7 +20,7 @@ export class LocalGameSession {
   }
   undo() {
     const snapshot = this.snapshots.pop();
-    if (!snapshot) throw new Error("No action to undo in this turn.");
+    if (!snapshot) throw new Error("error.noUndo");
     this.game = cloneState(snapshot);
     return this.game;
   }

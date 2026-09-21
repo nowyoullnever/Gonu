@@ -1,14 +1,22 @@
 import { openDialog } from "./dialog";
 import { openTutorial } from "./tutorial";
 import { getTheme, setTheme, type Theme } from "./theme";
+import { getLanguage, setLanguage, t, type Language } from "../i18n/i18n";
 export function openSettings() {
   const d = openDialog(
-    "SETTINGS",
-    '<p>APPEARANCE</p><div class="theme-options">' +
+    t("general.settings"),
+    `<p>${t("general.language")}</p><div class="language-options">` +
+      (["en", "ko"] as const)
+        .map(
+          (language) =>
+            `<button data-language="${language}" aria-pressed="${getLanguage() === language}">${t(language === "en" ? "general.english" : "general.korean")}</button>`,
+        )
+        .join("") +
+      `</div><p>${t("general.theme")}</p><div class="theme-options">` +
       (["light", "dark", "system"] as const)
         .map(
-          (t) =>
-            `<button data-theme="${t}" aria-pressed="${getTheme() === t}">${t.toUpperCase()}</button>`,
+          (theme) =>
+            `<button data-theme="${theme}" aria-pressed="${getTheme() === theme}">${t(`general.${theme}`)}</button>`,
         )
         .join("") +
       "</div>",
@@ -22,15 +30,22 @@ export function openSettings() {
         );
       }),
   );
+  d.querySelectorAll<HTMLButtonElement>("[data-language]").forEach(
+    (button) =>
+      (button.onclick = () => {
+        setLanguage(button.dataset.language as Language);
+        d.close();
+        window.dispatchEvent(new Event("gonu-language-change"));
+      }),
+  );
 }
 export function lobby(root: HTMLElement, start: () => void) {
   root.dataset.mode = "lobby";
-  root.innerHTML =
-    '<div class="home-shell"><h1>Go!nu</h1><p class="tagline">SHARED ROADS. NEW POSSIBILITIES.</p><button id="new-game">NEW GAME</button><div class="secondary"><button id="help">HOW TO PLAY</button><button id="settings">SETTINGS</button></div><p class="note">A game for two, on one board.</p></div>';
+  root.innerHTML = `<div class="home-shell"><h1>Go!nu</h1><p class="tagline">${t("lobby.tagline")}</p><button id="new-game">${t("general.newGame")}</button><div class="secondary"><button id="help">${t("general.howToPlay")}</button><button id="settings">${t("general.settings")}</button></div><p class="note">${t("lobby.note")}</p></div>`;
   root.querySelector<HTMLButtonElement>("#new-game")!.onclick = () => {
     const d = openDialog(
-      "NEW GAME",
-      '<button id="local-start" class="wide">LOCAL TWO PLAYER</button><p class="note">Pass the device. Build the way forward.</p>',
+      t("general.newGame"),
+      `<button id="local-start" class="wide">${t("general.localTwoPlayer")}</button><p class="note">${t("lobby.newGameNote")}</p>`,
     );
     d.querySelector<HTMLButtonElement>("#local-start")!.onclick = () => {
       d.close();

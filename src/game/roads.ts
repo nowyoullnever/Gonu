@@ -8,12 +8,12 @@ export function hasRoad(s: GameState, a: Point, b: Point) {
   );
 }
 export function roadError(s: GameState, a: Point, b: Point): string | null {
-  if (!inBounds(a) || !inBounds(b)) return "Endpoints must be on the board.";
-  if (samePoint(a, b)) return "Choose two different points.";
-  if (hasRoad(s, a, b)) return "This road already exists.";
-  if (distanceSquared(a, b) > 65) return "Too long: maximum length is √65.";
+  if (!inBounds(a) || !inBounds(b)) return "error.endpoint";
+  if (samePoint(a, b)) return "error.samePoint";
+  if (hasRoad(s, a, b)) return "error.roadExists";
+  if (distanceSquared(a, b) > 65) return "error.roadLong";
   if (gcd(Math.abs(a.row - b.row), Math.abs(a.col - b.col)) !== 1)
-    return "A road cannot pass through another board point.";
+    return "error.roadThroughPoint";
   return null;
 }
 export const canBuildRoad = (s: GameState, a: Point, b: Point) =>
