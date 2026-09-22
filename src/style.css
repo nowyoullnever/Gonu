@@ -453,6 +453,29 @@ html[lang="ko"] .lesson p {
 .theme-options button {
   font-size: 0.8rem;
 }
+.game-option-title {
+  margin: 0 0 24px;
+}
+.option-label {
+  margin: 18px 0 10px;
+  font-size: 0.78rem;
+}
+.undo-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 18px;
+}
+.undo-options button {
+  min-width: 0;
+  font-size: 0.75rem;
+}
+.undo-options button + button {
+  border-left: 0;
+}
+.undo-options button[aria-checked="true"] {
+  background: var(--selected);
+  color: var(--inverse);
+}
 @keyframes appear {
   from {
     opacity: 0;

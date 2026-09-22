@@ -17,6 +17,7 @@ export const en = {
     previous: "PREVIOUS",
     done: "DONE",
     cancel: "CANCEL SELECTION",
+    startGame: "START GAME",
   },
   lobby: {
     tagline: "SHARED ROADS. NEW POSSIBILITIES.",
@@ -37,6 +38,9 @@ export const en = {
     matchComplete: "The match is complete.",
     leaveGame: "LEAVE THIS GAME?",
     leaveGameNote: "Your local match will be discarded.",
+    undoMode: "UNDO MODE",
+    fullGame: "FULL GAME",
+    currentTurnOnly: "CURRENT TURN ONLY",
   },
   action: {
     move: "MOVE",
@@ -55,6 +59,8 @@ export const en = {
     selectDestination: "SELECT DESTINATION",
     selectFirstPoint: "SELECT FIRST POINT",
     selectSecondPoint: "SELECT SECOND POINT",
+    moveShortcut: "MOVE — Z",
+    roadShortcut: "ROAD — X",
   },
   capture: {
     choose: "CHOOSE A STONE TO CAPTURE — select one × target",
@@ -105,7 +111,7 @@ export const en = {
       {
         title: "THREE ACTIONS",
         diagram: "● ● ●",
-        copy: "Take exactly three actions: MOVE or ROAD in any order. The same stone can move repeatedly. Your third action automatically passes the turn. Black begins with six stones at C1–H1; White has six at C10–H10.",
+        copy: "Take exactly three actions: MOVE or ROAD in any order. The same stone can move repeatedly. Your third action automatically passes the turn. Black begins with six stones at C1–H1; White has six at C10–H10.\n\nDuring a game, press Z for MOVE mode and X for ROAD mode.\n\nIn HOW TO PLAY, use the ← / → arrow keys to move between pages.",
       },
       {
         title: "BUILD ROADS",

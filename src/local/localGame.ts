@@ -1,24 +1,44 @@
 import { createGame, cloneState } from "../game/gameState";
 import { applyAction } from "../game/rules";
 import type { GameAction, GameState } from "../game/types";
+export type UndoMode = "all" | "turn";
+export interface LocalGameOptions {
+  undoMode?: UndoMode;
+}
 export class LocalGameSession {
   game: GameState;
   private snapshots: GameState[] = [];
-  constructor(initial = createGame()) {
+  private pendingSnapshot: GameState | null = null;
+  readonly undoMode: UndoMode;
+  constructor(initial = createGame(), options: LocalGameOptions = {}) {
     this.game = cloneState(initial);
+    this.undoMode = options.undoMode ?? "all";
   }
   get canUndo() {
-    return this.snapshots.length > 0;
+    const snapshot = this.snapshots.at(-1);
+    return Boolean(
+      snapshot &&
+      !this.pendingSnapshot &&
+      (this.undoMode === "all" ||
+        (snapshot.currentPlayer === this.game.currentPlayer &&
+          snapshot.turn === this.game.turn)),
+    );
   }
   dispatch(action: GameAction) {
     const before = this.game,
       after = applyAction(before, action);
-    if (!before.pending) this.snapshots.push(cloneState(before));
     this.game = after;
-    if (after.turn !== before.turn) this.snapshots = [];
+    if (!before.pending) {
+      if (after.pending) this.pendingSnapshot = cloneState(before);
+      else this.snapshots.push(cloneState(before));
+    } else if (!after.pending && this.pendingSnapshot) {
+      this.snapshots.push(this.pendingSnapshot);
+      this.pendingSnapshot = null;
+    }
     return after;
   }
   undo() {
+    if (!this.canUndo) throw new Error("error.noUndo");
     const snapshot = this.snapshots.pop();
     if (!snapshot) throw new Error("error.noUndo");
     this.game = cloneState(snapshot);
@@ -27,5 +47,6 @@ export class LocalGameSession {
   rematch() {
     this.game = createGame();
     this.snapshots = [];
+    this.pendingSnapshot = null;
   }
 }

@@ -17,6 +17,7 @@ export const ko = {
     previous: "이전",
     done: "완료",
     cancel: "선택 취소",
+    startGame: "게임 시작",
   },
   lobby: {
     tagline: "함께 만드는 길. 새로운 가능성.",
@@ -37,6 +38,9 @@ export const ko = {
     matchComplete: "게임이 끝났습니다.",
     leaveGame: "게임을 나갈까요?",
     leaveGameNote: "진행 중인 로컬 게임은 사라집니다.",
+    undoMode: "되돌리기 범위",
+    fullGame: "전체 게임",
+    currentTurnOnly: "현재 턴만",
   },
   action: {
     move: "이동",
@@ -55,6 +59,8 @@ export const ko = {
     selectDestination: "이동할 지점을 선택하세요",
     selectFirstPoint: "첫 번째 점을 선택하세요",
     selectSecondPoint: "연결할 점을 선택하세요",
+    moveShortcut: "이동 — Z",
+    roadShortcut: "길 설치 — X",
   },
   capture: {
     choose: "포획할 돌을 선택하세요",
@@ -106,7 +112,7 @@ export const ko = {
       {
         title: "3개의 행동",
         diagram: "● ● ●",
-        copy: "각 플레이어는 한 턴에 3개의 행동을 할 수 있습니다.\n\n돌을 움직이거나 길을 설치할 수 있으며, 두 행동을 원하는 순서와 조합으로 사용할 수 있습니다.\n\n같은 돌을 한 턴에 여러 번 움직이는 것도 가능합니다.",
+        copy: "각 플레이어는 한 턴에 3개의 행동을 할 수 있습니다.\n\n돌을 움직이거나 길을 설치할 수 있으며, 두 행동을 원하는 순서와 조합으로 사용할 수 있습니다.\n\n같은 돌을 한 턴에 여러 번 움직이는 것도 가능합니다.\n\n게임 중 Z 키를 누르면 이동 모드, X 키를 누르면 길 설치 모드로 전환할 수 있습니다.\n\n게임 방법 화면에서는 ← / → 방향키로 이전 또는 다음 설명으로 이동할 수 있습니다.",
       },
       {
         title: "길 설치",

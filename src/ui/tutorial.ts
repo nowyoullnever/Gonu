@@ -5,7 +5,7 @@ export function openTutorial() {
   let index = 0;
   const dialog = openDialog(
     t("tutorial.title"),
-    `<div class="lesson"></div><div class="lesson-nav"><button id="prev">${t("general.previous")}</button><span id="step"></span><button id="next">${t("general.next")}</button></div>`,
+    `<div class="lesson"></div><div class="lesson-nav"><button id="prev">← ${t("general.previous")}</button><span id="step"></span><button id="next">${t("general.next")} →</button></div>`,
   );
   function render() {
     const steps = tutorialSteps(),
@@ -29,5 +29,26 @@ export function openTutorial() {
       render();
     }
   };
+  const keydown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      dialog.close();
+    } else if (event.key === "ArrowLeft" && index > 0) {
+      event.preventDefault();
+      index--;
+      render();
+    } else if (
+      event.key === "ArrowRight" &&
+      index < tutorialSteps().length - 1
+    ) {
+      event.preventDefault();
+      index++;
+      render();
+    }
+  };
+  document.addEventListener("keydown", keydown);
+  dialog.addEventListener("close", () =>
+    document.removeEventListener("keydown", keydown),
+  );
   render();
 }

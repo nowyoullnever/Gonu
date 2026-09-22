@@ -31,7 +31,7 @@ it("plays full initial-position match through rendered buttons and rematches", (
   expect(session.game).toEqual(createGame());
   expect(document.querySelector("#result")!.hasAttribute("hidden")).toBe(true);
 });
-it("capture choices highlight only targets, block modes and undo the whole action", () => {
+it("capture choices highlight only targets and keep undo unavailable until completion", () => {
   const initial = createGame();
   initial.stones = [
     { id: "a", player: "black", row: 3, col: 4 },
@@ -53,6 +53,8 @@ it("capture choices highlight only targets, block modes and undo the whole actio
   expect(document.querySelector<HTMLButtonElement>("#road")!.disabled).toBe(
     true,
   );
-  document.querySelector<HTMLButtonElement>("#undo")!.click();
-  expect(session.game).toEqual(initial);
+  const undo = document.querySelector<HTMLButtonElement>("#undo")!;
+  expect(undo.disabled).toBe(true);
+  undo.click();
+  expect(session.game.pending?.type).toBe("capture");
 });

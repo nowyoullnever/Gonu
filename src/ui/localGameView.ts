@@ -10,6 +10,8 @@ import { openTutorial } from "./tutorial";
 import { openSettings } from "./lobby";
 import { openDialog } from "./dialog";
 
+let removeGameplayShortcuts = () => {};
+
 function eventText(event: GameEvent) {
   if (event.type === "road")
     return `${t("action.road")} ${coordinate(event.from)}–${coordinate(event.to)}`;
@@ -51,7 +53,8 @@ export function localGameView(
   let mode: "move" | "road" = "road",
     selected: Point | null = null;
   root.dataset.mode = "local";
-  root.innerHTML = `<header><h1>Go!nu</h1><span>${t("general.localTwoPlayer")}</span></header><section class="game-hud"><h2 id="turn"></h2><div id="actions"></div><div id="counts"></div></section><div class="modes"><button id="move">${t("action.move")}</button><button id="road">${t("action.road")}</button></div><p id="instruction" role="status" aria-live="polite"></p><div id="board-host"></div><p id="preview-info">&nbsp;</p><p id="events" role="log" aria-live="polite"></p><section id="result" aria-live="assertive" hidden></section><footer><button id="undo">${t("action.undo")}</button><button id="clear">${t("general.cancel")}</button><button id="back">${t("general.back")}</button><button id="help">${t("general.howToPlay")}</button><button id="settings">${t("general.settings")}</button></footer>`;
+  removeGameplayShortcuts();
+  root.innerHTML = `<header><h1>Go!nu</h1><span>${t("general.localTwoPlayer")}</span></header><section class="game-hud"><h2 id="turn"></h2><div id="actions"></div><div id="counts"></div></section><div class="modes"><button id="move">${t("action.moveShortcut")}</button><button id="road">${t("action.roadShortcut")}</button></div><p id="instruction" role="status" aria-live="polite"></p><div id="board-host"></div><p id="preview-info">&nbsp;</p><p id="events" role="log" aria-live="polite"></p><section id="result" aria-live="assertive" hidden></section><footer><button id="undo">${t("action.undo")}</button><button id="clear">${t("general.cancel")}</button><button id="back">${t("general.back")}</button><button id="help">${t("general.howToPlay")}</button><button id="settings">${t("general.settings")}</button></footer>`;
   const el = (id: string) => root.querySelector<HTMLElement>(`#${id}`)!;
   const board = new BoardView({ selected: null, targets: [], click, hover });
   el("board-host").append(board.element);
@@ -186,6 +189,32 @@ export function localGameView(
       selected = null;
       render();
     };
+  const shortcutHandler = (event: KeyboardEvent) => {
+    const key = event.key.toLowerCase();
+    const target = event.target;
+    const isEditable =
+      target instanceof HTMLElement &&
+      target.matches("input, textarea, select, [contenteditable='true']");
+    if (
+      (key !== "z" && key !== "x") ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.metaKey ||
+      session.game.pending ||
+      session.game.winner ||
+      root.dataset.mode !== "local" ||
+      document.querySelector("dialog[open]") ||
+      isEditable
+    )
+      return;
+    event.preventDefault();
+    mode = key === "z" ? "move" : "road";
+    selected = null;
+    render();
+  };
+  document.addEventListener("keydown", shortcutHandler);
+  removeGameplayShortcuts = () =>
+    document.removeEventListener("keydown", shortcutHandler);
   el("undo").onclick = () => {
     try {
       session.undo();

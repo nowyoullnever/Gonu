@@ -350,9 +350,10 @@ describe("reproduction and lineage", () => {
   });
 });
 describe("local snapshots", () => {
-  it("restores road, AP and move exactly; locks previous turn", () => {
+  it("turn-only undo stops at the active turn boundary", () => {
     const local = new LocalGameSession(),
       initial = structuredClone(local.game);
+    const turnOnly = new LocalGameSession(createGame(), { undoMode: "turn" });
     local.dispatch({ type: "build-road", from: p(0, 2), to: p(1, 2) });
     local.undo();
     expect(local.game).toEqual(initial);
@@ -363,8 +364,55 @@ describe("local snapshots", () => {
     expect(local.game).toEqual(built);
     local.dispatch({ type: "move", stoneId: "s1", to: p(1, 2) });
     local.dispatch({ type: "move", stoneId: "s1", to: p(0, 2) });
+    expect(local.canUndo).toBe(true);
+    for (const action of [
+      { type: "build-road" as const, from: p(0, 2), to: p(1, 2) },
+      { type: "build-road" as const, from: p(0, 3), to: p(1, 3) },
+      { type: "build-road" as const, from: p(0, 4), to: p(1, 4) },
+    ])
+      turnOnly.dispatch(action);
+    expect(turnOnly.game.currentPlayer).toBe("white");
+    expect(turnOnly.canUndo).toBe(false);
+    expect(() => turnOnly.undo()).toThrow();
+  });
+  it("full-game undo crosses turn boundaries and restores AP exactly", () => {
+    const local = new LocalGameSession();
+    const actions = [
+      { type: "build-road" as const, from: p(0, 0), to: p(1, 0) },
+      { type: "build-road" as const, from: p(0, 1), to: p(1, 1) },
+      { type: "build-road" as const, from: p(0, 2), to: p(1, 2) },
+      { type: "build-road" as const, from: p(9, 0), to: p(8, 0) },
+      { type: "build-road" as const, from: p(9, 1), to: p(8, 1) },
+    ];
+    for (const action of actions) local.dispatch(action);
+    expect(local.game).toMatchObject({
+      currentPlayer: "white",
+      actionsRemaining: 1,
+    });
+    local.undo();
+    expect(local.game).toMatchObject({
+      currentPlayer: "white",
+      actionsRemaining: 2,
+    });
+    local.undo();
+    expect(local.game).toMatchObject({
+      currentPlayer: "white",
+      actionsRemaining: 3,
+    });
+    local.undo();
+    expect(local.game).toMatchObject({
+      currentPlayer: "black",
+      actionsRemaining: 1,
+    });
+    expect(local.game.roads).toHaveLength(2);
+    local.undo();
+    expect(local.game).toMatchObject({
+      currentPlayer: "black",
+      actionsRemaining: 2,
+    });
+    local.undo();
+    expect(local.game).toEqual(createGame());
     expect(local.canUndo).toBe(false);
-    expect(() => local.undo()).toThrow();
   });
   it.each(["capture", "suicide"])("undo %s and game-over", (kind) => {
     const s =
@@ -391,12 +439,27 @@ describe("local snapshots", () => {
     s.roads = [{ from: p(8, 0), to: p(9, 0) }];
     const local = new LocalGameSession(s);
     local.dispatch({ type: "move", stoneId: "a", to: p(9, 0) });
-    local.undo();
-    expect(local.game).toEqual(s);
-    local.dispatch({ type: "move", stoneId: "a", to: p(9, 0) });
+    expect(local.canUndo).toBe(false);
+    expect(() => local.undo()).toThrow();
     local.dispatch({ type: "reproduce", at: p(0, 9) });
     local.undo();
     expect(local.game).toEqual(s);
+  });
+  it("undo restores a captured carrier with its stable ID", () => {
+    const s = setup([
+      stone("carrier", "black", 4, 3),
+      stone("left", "white", 4, 2),
+      stone("right", "white", 3, 4),
+    ]);
+    s.reproductionCarrier.black = "carrier";
+    s.currentPlayer = "white";
+    s.roads = [{ from: p(3, 4), to: p(4, 4) }];
+    const local = new LocalGameSession(s);
+    local.dispatch({ type: "move", stoneId: "right", to: p(4, 4) });
+    expect(local.game.reproductionCarrier.black).toBeNull();
+    local.undo();
+    expect(local.game).toEqual(s);
+    expect(local.game.reproductionCarrier.black).toBe("carrier");
   });
   it("invalid commands add no history; rematch resets everything", () => {
     const local = new LocalGameSession();

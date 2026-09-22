@@ -2,6 +2,7 @@ import { openDialog } from "./dialog";
 import { openTutorial } from "./tutorial";
 import { getTheme, setTheme, type Theme } from "./theme";
 import { getLanguage, setLanguage, t, type Language } from "../i18n/i18n";
+import type { UndoMode } from "../local/localGame";
 export function openSettings() {
   const d = openDialog(
     t("general.settings"),
@@ -39,17 +40,27 @@ export function openSettings() {
       }),
   );
 }
-export function lobby(root: HTMLElement, start: () => void) {
+export function lobby(root: HTMLElement, start: (undoMode: UndoMode) => void) {
   root.dataset.mode = "lobby";
   root.innerHTML = `<div class="home-shell"><h1>Go!nu</h1><p class="tagline">${t("lobby.tagline")}</p><button id="new-game">${t("general.newGame")}</button><div class="secondary"><button id="help">${t("general.howToPlay")}</button><button id="settings">${t("general.settings")}</button></div><p class="note">${t("lobby.note")}</p></div>`;
   root.querySelector<HTMLButtonElement>("#new-game")!.onclick = () => {
+    let undoMode: UndoMode = "all";
     const d = openDialog(
       t("general.newGame"),
-      `<button id="local-start" class="wide">${t("general.localTwoPlayer")}</button><p class="note">${t("lobby.newGameNote")}</p>`,
+      `<h3 class="game-option-title">${t("general.localTwoPlayer")}</h3><p class="option-label">${t("game.undoMode")}</p><div class="undo-options" role="radiogroup" aria-label="${t("game.undoMode")}"><button data-undo-mode="all" role="radio" aria-checked="true">${t("game.fullGame")}</button><button data-undo-mode="turn" role="radio" aria-checked="false">${t("game.currentTurnOnly")}</button></div><button id="local-start" class="wide">${t("general.startGame")}</button><p class="note">${t("lobby.newGameNote")}</p>`,
+    );
+    d.querySelectorAll<HTMLButtonElement>("[data-undo-mode]").forEach(
+      (button) =>
+        (button.onclick = () => {
+          undoMode = button.dataset.undoMode as UndoMode;
+          d.querySelectorAll("[data-undo-mode]").forEach((option) =>
+            option.setAttribute("aria-checked", String(option === button)),
+          );
+        }),
     );
     d.querySelector<HTMLButtonElement>("#local-start")!.onclick = () => {
       d.close();
-      start();
+      start(undoMode);
     };
   };
   root.querySelector<HTMLButtonElement>("#help")!.onclick = openTutorial;

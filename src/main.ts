@@ -8,8 +8,12 @@ watchTheme();
 initializeLanguage();
 const root = document.querySelector<HTMLElement>("#app")!;
 let activeSession: LocalGameSession | undefined;
-const start = () => {
-  activeSession = localGameView(root, home, activeSession);
+const start = (undoMode?: import("./local/localGame").UndoMode) => {
+  activeSession = localGameView(
+    root,
+    home,
+    activeSession ?? new LocalGameSession(undefined, { undoMode }),
+  );
 };
 const home = () => {
   activeSession = undefined;
