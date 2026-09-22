@@ -28,6 +28,7 @@ export type Pending =
 export interface GameState {
   stones: Stone[];
   roads: Road[];
+  firstPlayer: Player;
   currentPlayer: Player;
   actionsRemaining: number;
   reproductionCarrier: Record<Player, string | null>;

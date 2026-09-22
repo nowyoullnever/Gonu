@@ -1,10 +1,14 @@
 import type { GameState, Point } from "../game/types";
-import { coordinate, points, samePoint } from "../game/geometry";
+import { coordinate, points, samePoint, toDisplayPoint, type BoardPerspective } from "../game/geometry";
 import { stoneAt } from "../game/movement";
 import { playerName, t } from "../i18n/i18n";
 const ns = "http://www.w3.org/2000/svg";
-const position = (p: Point) => ({ x: 50 + p.col * 50, y: 50 + p.row * 50 });
+const position = (p: Point, perspective: BoardPerspective) => {
+  const displayed = toDisplayPoint(p, perspective);
+  return { x: 50 + displayed.col * 50, y: 50 + displayed.row * 50 };
+};
 export interface BoardInteraction {
+  perspective?: BoardPerspective;
   selected: Point | null;
   targets: Point[];
   click: (p: Point) => void;
@@ -19,7 +23,9 @@ export class BoardView {
   private buttons: HTMLButtonElement[] = [];
   private pieceNodes = new Map<string, HTMLElement>();
   private animatedRevision = -1;
+  private readonly perspective: BoardPerspective;
   constructor(private interaction: BoardInteraction) {
+    this.perspective = interaction.perspective ?? "black";
     this.element.className = "board";
     this.element.setAttribute("aria-label", t("a11y.board"));
     this.roads.setAttribute("viewBox", "0 0 550 550");
@@ -31,7 +37,7 @@ export class BoardView {
       const button = document.createElement("button");
       button.className = "point";
       button.dataset.point = coordinate(p);
-      const pos = position(p);
+      const pos = position(p, this.perspective);
       button.style.left = `${pos.x / 5.5}%`;
       button.style.top = `${pos.y / 5.5}%`;
       button.onclick = () => this.interaction.click(p);
@@ -56,14 +62,14 @@ export class BoardView {
     }
     this.element.onpointerleave = () => this.interaction.hover(null);
     for (let i = 0; i < 10; i++)
-      for (const side of ["top", "bottom", "left", "right"]) {
+      for (const side of ["top", "left"]) {
         const label = document.createElement("span");
         label.className = `coordinate ${side}`;
         label.textContent =
-          side === "top" || side === "bottom"
-            ? String.fromCharCode(65 + i)
-            : `${i + 1}`;
-        if (side === "top" || side === "bottom")
+          side === "top"
+            ? String.fromCharCode(65 + (this.perspective === "black" ? i : 9 - i))
+            : `${this.perspective === "black" ? i + 1 : 10 - i}`;
+        if (side === "top")
           label.style.left = `${(50 + i * 50) / 5.5}%`;
         else label.style.top = `${(50 + i * 50) / 5.5}%`;
         this.element.append(label);
@@ -78,8 +84,8 @@ export class BoardView {
     this.roads.replaceChildren();
     for (const road of s.roads) {
       const line = document.createElementNS(ns, "line"),
-        a = position(road.from),
-        b = position(road.to);
+        a = position(road.from, this.perspective),
+        b = position(road.to, this.perspective);
       for (const [k, v] of Object.entries({
         x1: a.x,
         y1: a.y,
@@ -114,7 +120,7 @@ export class BoardView {
         this.pieces.append(node);
       }
       node.className = `stone ${stone.player}${s.reproductionCarrier[stone.player] === stone.id ? " carrier" : ""}`;
-      const p = position(stone);
+      const p = position(stone, this.perspective);
       node.style.left = `${p.x / 5.5}%`;
       node.style.top = `${p.y / 5.5}%`;
     }
@@ -147,8 +153,8 @@ export class BoardView {
   showPreview(from: Point | null, to: Point | null, valid: boolean) {
     this.preview.style.display = from && to ? "" : "none";
     if (!from || !to) return;
-    const a = position(from),
-      b = position(to);
+    const a = position(from, this.perspective),
+      b = position(to, this.perspective);
     for (const [k, v] of Object.entries({ x1: a.x, y1: a.y, x2: b.x, y2: b.y }))
       this.preview.setAttribute(k, String(v));
     this.preview.setAttribute(

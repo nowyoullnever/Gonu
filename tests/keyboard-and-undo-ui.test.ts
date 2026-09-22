@@ -25,12 +25,13 @@ it("chooses an undo mode before starting a local match", () => {
   lobby(root, (selected) => (options = selected));
   root.querySelector<HTMLButtonElement>("#new-game")!.click();
   const dialog = document.querySelector("dialog")!;
+  dialog.querySelector<HTMLButtonElement>("#local-option")!.click();
   expect(dialog.textContent).toContain("UNDO MODE");
   expect(dialog.textContent).toContain("FULL GAME");
   expect(dialog.textContent).toContain("CURRENT TURN ONLY");
-  dialog.querySelector<HTMLButtonElement>('[data-undo-mode="turn"]')!.click();
+  dialog.querySelector<HTMLInputElement>('input[name="undo-mode"][value="turn"]')!.click();
   dialog.querySelector<HTMLButtonElement>("#local-start")!.click();
-  expect(options).toEqual({ undoMode: "turn", showLegalPoints: true });
+  expect(options).toEqual({ firstPlayer: "black", undoMode: "turn", showLegalPoints: true });
 });
 
 it("switches MOVE and ROAD modes with plain Z and X only when gameplay is available", () => {
@@ -90,13 +91,13 @@ it("shows translated shortcut labels and tutorial arrow navigation", () => {
 
 it("does not expose undo while a reproduction decision is pending", () => {
   const initial = createGame();
-  initial.stones = [{ id: "a", player: "black", row: 8, col: 0 }];
-  initial.roads = [{ from: { row: 8, col: 0 }, to: { row: 9, col: 0 } }];
+  initial.stones = [{ id: "a", player: "black", row: 1, col: 0 }];
+  initial.roads = [{ from: { row: 1, col: 0 }, to: { row: 0, col: 0 } }];
   const root = document.querySelector("main")!;
   const session = localGameView(root, () => {}, new LocalGameSession(initial));
   root.querySelector<HTMLButtonElement>("#move")!.click();
-  root.querySelector<HTMLButtonElement>('[data-point="A9"]')!.click();
-  root.querySelector<HTMLButtonElement>('[data-point="A10"]')!.click();
+  root.querySelector<HTMLButtonElement>('[data-point="A2"]')!.click();
+  root.querySelector<HTMLButtonElement>('[data-point="A1"]')!.click();
   expect(session.game.pending?.type).toBe("reproduction");
   expect(root.querySelector<HTMLButtonElement>("#undo")!.disabled).toBe(true);
 });

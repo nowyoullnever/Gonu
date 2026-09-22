@@ -22,6 +22,7 @@ export const en = {
     off: "OFF",
     sound: "SOUND",
     bgm: "BGM",
+    appearance: "APPEARANCE",
   },
   lobby: {
     tagline: "SHARED ROADS. NEW POSSIBILITIES.",
@@ -46,6 +47,12 @@ export const en = {
     fullGame: "FULL GAME",
     currentTurnOnly: "CURRENT TURN ONLY",
     showLegalPoints: "SHOW LEGAL POINTS",
+    firstPlayer: "FIRST PLAYER",
+    yourStone: "YOUR STONE",
+    vsComputer: "VS COMPUTER",
+    changeFirstPlayer: "CHANGE FIRST PLAYER",
+    comingSoon: "COMING SOON",
+    computerUnavailable: "Computer play is not implemented yet.",
   },
   action: {
     move: "MOVE",
@@ -110,6 +117,7 @@ export const en = {
     completePending: "Complete the pending choice first.",
     invalidMove: "Move your stone along one road to an empty point.",
     noUndo: "No action to undo in this turn.",
+    noFirstPlayerChange: "The first player can only change before play begins.",
   },
   tutorial: {
     title: "HOW TO PLAY",

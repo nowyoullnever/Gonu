@@ -1,7 +1,8 @@
 import type { GameState, Player, Point, Stone } from "./types";
 import { points } from "./geometry";
 import { stoneAt } from "./movement";
-export const homeRow = (p: Player) => (p === "black" ? 0 : 9);
+export const homeRow = (p: Player) => (p === "black" ? 9 : 0);
+export const opponentRow = (p: Player) => (p === "black" ? 0 : 9);
 export const getReproductionPoints = (s: GameState) =>
   points.filter((p) => p.row === homeRow(s.currentPlayer) && !stoneAt(s, p));
 export function triggersReproduction(
@@ -9,7 +10,7 @@ export function triggersReproduction(
   stone: Stone,
   from: Point,
 ): boolean {
-  const edge = 9 - homeRow(stone.player),
+  const edge = opponentRow(stone.player),
     carrier = s.reproductionCarrier[stone.player];
   return (
     from.row !== edge &&

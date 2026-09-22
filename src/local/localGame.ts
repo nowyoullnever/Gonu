@@ -1,14 +1,16 @@
 import { createGame, cloneState } from "../game/gameState";
 import { applyAction } from "../game/rules";
-import type { GameAction, GameState } from "../game/types";
+import type { GameAction, GameState, Player } from "../game/types";
 export type UndoMode = "all" | "turn";
 export interface GameSettings {
   undoMode: UndoMode;
   showLegalPoints: boolean;
+  firstPlayer: Player;
 }
 export interface LocalGameOptions {
   undoMode?: UndoMode;
   showLegalPoints?: boolean;
+  firstPlayer?: Player;
 }
 export class LocalGameSession {
   game: GameState;
@@ -16,12 +18,15 @@ export class LocalGameSession {
   private pendingSnapshot: GameState | null = null;
   readonly undoMode: UndoMode;
   readonly settings: GameSettings;
-  constructor(initial = createGame(), options: LocalGameOptions = {}) {
+  constructor(initial?: GameState, options: LocalGameOptions = {}) {
+    const firstPlayer = options.firstPlayer ?? initial?.firstPlayer ?? "black";
+    initial ??= createGame({ firstPlayer });
     this.game = cloneState(initial);
     this.undoMode = options.undoMode ?? "all";
     this.settings = {
       undoMode: this.undoMode,
       showLegalPoints: options.showLegalPoints ?? true,
+      firstPlayer,
     };
   }
   get canUndo() {
@@ -33,6 +38,20 @@ export class LocalGameSession {
         (snapshot.currentPlayer === this.game.currentPlayer &&
           snapshot.turn === this.game.turn)),
     );
+  }
+  get completedActionCount() {
+    return this.snapshots.length;
+  }
+  get canChangeFirstPlayer() {
+    return this.completedActionCount === 0 && !this.pendingSnapshot && !this.game.pending && !this.game.winner;
+  }
+  changeFirstPlayer() {
+    if (!this.canChangeFirstPlayer) throw new Error("error.noFirstPlayerChange");
+    const firstPlayer: Player = this.game.firstPlayer === "black" ? "white" : "black";
+    this.settings.firstPlayer = firstPlayer;
+    this.game.firstPlayer = firstPlayer;
+    this.game.currentPlayer = firstPlayer;
+    this.game.actionsRemaining = 3;
   }
   dispatch(action: GameAction) {
     const before = this.game,
@@ -55,7 +74,7 @@ export class LocalGameSession {
     return this.game;
   }
   rematch() {
-    this.game = createGame();
+    this.game = createGame({ firstPlayer: this.settings.firstPlayer });
     this.snapshots = [];
     this.pendingSnapshot = null;
   }

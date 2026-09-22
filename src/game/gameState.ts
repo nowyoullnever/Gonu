@@ -1,18 +1,23 @@
-import type { GameState, Stone } from "./types";
-export function createGame(): GameState {
+import type { GameState, Player, Stone } from "./types";
+export interface CreateGameOptions {
+  firstPlayer?: Player;
+}
+export function createGame(options: CreateGameOptions = {}): GameState {
+  const firstPlayer = options.firstPlayer ?? "black";
   const stones: Stone[] = [];
   for (const player of ["black", "white"] as const)
     for (let col = 2; col <= 7; col++)
       stones.push({
         id: `s${stones.length + 1}`,
         player,
-        row: player === "black" ? 0 : 9,
+        row: player === "black" ? 9 : 0,
         col,
       });
   return {
     stones,
     roads: [],
-    currentPlayer: "black",
+    firstPlayer,
+    currentPlayer: firstPlayer,
     actionsRemaining: 3,
     reproductionCarrier: { black: null, white: null },
     winner: null,

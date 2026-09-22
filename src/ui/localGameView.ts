@@ -6,8 +6,6 @@ import { getLegalRoadTargets, roadError } from "../game/roads";
 import { getReproductionPoints } from "../game/reproduction";
 import { playerName, playerTurn, playerWins, t } from "../i18n/i18n";
 import { BoardView } from "./boardView";
-import { openTutorial } from "./tutorial";
-import { openSettings } from "./lobby";
 import { openDialog } from "./dialog";
 import { audio } from "./audio";
 
@@ -55,9 +53,9 @@ export function localGameView(
     selected: Point | null = null;
   root.dataset.mode = "local";
   removeGameplayShortcuts();
-  root.innerHTML = `<header><h1>Go!nu</h1><span>${t("general.localTwoPlayer")}</span></header><section class="game-hud"><h2 id="turn"></h2><div id="actions"></div><div id="counts"></div></section><div class="modes"><button id="move">${t("action.moveShortcut")}</button><button id="road">${t("action.roadShortcut")}</button></div><p id="instruction" role="status" aria-live="polite"></p><div id="board-host"></div><p id="preview-info">&nbsp;</p><p id="events" role="log" aria-live="polite"></p><section id="result" aria-live="assertive" hidden></section><footer><button id="undo">${t("action.undo")}</button><button id="clear">${t("general.cancel")}</button><button id="back">${t("general.back")}</button><button id="help">${t("general.howToPlay")}</button><button id="settings">${t("general.settings")}</button></footer>`;
+  root.innerHTML = `<h1>Go!nu</h1><p class="local-title">${t("general.localTwoPlayer")}</p><section class="game-status-area"><h2 id="turn" class="turn-status"></h2><p id="actions" class="action-status"></p><p id="instruction" class="game-notice" role="status" aria-live="polite"></p></section><div class="mode-controls"><button id="move">${t("action.moveShortcut")}</button><button id="road">${t("action.roadShortcut")}</button></div><div class="board-wrap"><div id="board-host"></div></div><p id="preview-info">&nbsp;</p><p id="counts" class="local-count"></p><p id="events" role="log" aria-live="polite"></p><section id="result" aria-live="assertive" hidden></section><div class="game-controls"><button id="undo">${t("action.undo")}</button><button id="first-player">${t("game.changeFirstPlayer")}</button><button id="back">${t("general.back")}</button></div>`;
   const el = (id: string) => root.querySelector<HTMLElement>(`#${id}`)!;
-  const board = new BoardView({ selected: null, targets: [], click, hover });
+  const board = new BoardView({ perspective: "black", selected: null, targets: [], click, hover });
   el("board-host").append(board.element);
   function legalPoints() {
     const s = session.game;
@@ -83,8 +81,7 @@ export function localGameView(
       "aria-label",
       t("game.actionsRemaining", { count: s.actionsRemaining }),
     );
-    el("counts").innerHTML =
-      `<span><i class="small-stone black"></i> ${playerName("black")} ${s.stones.filter((x) => x.player === "black").length}</span><span><i class="small-stone white"></i> ${playerName("white")} ${s.stones.filter((x) => x.player === "white").length}</span>`;
+    el("counts").textContent = `${playerName("black")} ${s.stones.filter((x) => x.player === "black").length} · ${playerName("white")} ${s.stones.filter((x) => x.player === "white").length}`;
     el("instruction").textContent = s.winner
       ? t("game.matchComplete")
       : s.pending?.type === "reproduction"
@@ -108,7 +105,7 @@ export function localGameView(
       button.disabled = Boolean(s.pending || s.winner);
     }
     (el("undo") as HTMLButtonElement).disabled = !session.canUndo;
-    (el("clear") as HTMLButtonElement).disabled = !selected;
+    (el("first-player") as HTMLButtonElement).hidden = !session.canChangeFirstPlayer;
     el("events").textContent = s.events.map(eventText).join(" ");
     el("preview-info").textContent = "\u00a0";
     board.update(
@@ -239,10 +236,7 @@ export function localGameView(
       el("instruction").textContent = t((error as Error).message);
     }
   };
-  el("clear").onclick = () => {
-    selected = null;
-    render();
-  };
+  el("first-player").onclick = () => { session.changeFirstPlayer(); selected = null; render(); };
   el("back").onclick = () => {
     const dialog = openDialog(
       t("game.leaveGame"),
@@ -253,8 +247,6 @@ export function localGameView(
       back();
     };
   };
-  el("help").onclick = openTutorial;
-  el("settings").onclick = openSettings;
   render();
   return session;
 }

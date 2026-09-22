@@ -22,6 +22,7 @@ export const ko = {
     off: "끄기",
     sound: "효과음",
     bgm: "배경음악",
+    appearance: "화면",
   },
   lobby: {
     tagline: "함께 만드는 길. 새로운 가능성.",
@@ -46,6 +47,12 @@ export const ko = {
     fullGame: "전체 게임",
     currentTurnOnly: "현재 턴만",
     showLegalPoints: "가능한 점 표시",
+    firstPlayer: "선공",
+    yourStone: "내 돌",
+    vsComputer: "컴퓨터 대전",
+    changeFirstPlayer: "선공 변경",
+    comingSoon: "준비 중",
+    computerUnavailable: "컴퓨터 대전은 아직 구현 중입니다.",
   },
   action: {
     move: "이동",
@@ -111,6 +118,7 @@ export const ko = {
     completePending: "진행 중인 선택을 먼저 완료하세요.",
     invalidMove: "연결된 길 하나를 따라 비어 있는 지점으로 이동하세요.",
     noUndo: "이번 턴에는 되돌릴 행동이 없습니다.",
+    noFirstPlayerChange: "게임 시작 전만 선공을 변경할 수 있습니다.",
   },
   tutorial: {
     title: "게임 방법",
