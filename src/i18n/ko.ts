@@ -18,6 +18,10 @@ export const ko = {
     done: "완료",
     cancel: "선택 취소",
     startGame: "게임 시작",
+    on: "켜기",
+    off: "끄기",
+    sound: "효과음",
+    bgm: "배경음악",
   },
   lobby: {
     tagline: "함께 만드는 길. 새로운 가능성.",
@@ -41,6 +45,7 @@ export const ko = {
     undoMode: "되돌리기 범위",
     fullGame: "전체 게임",
     currentTurnOnly: "현재 턴만",
+    showLegalPoints: "가능한 점 표시",
   },
   action: {
     move: "이동",
@@ -61,6 +66,7 @@ export const ko = {
     selectSecondPoint: "연결할 점을 선택하세요",
     moveShortcut: "이동 — Z",
     roadShortcut: "길 설치 — X",
+    invalidRoad: "설치할 수 없는 길입니다",
   },
   capture: {
     choose: "포획할 돌을 선택하세요",

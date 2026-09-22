@@ -2,17 +2,27 @@ import { createGame, cloneState } from "../game/gameState";
 import { applyAction } from "../game/rules";
 import type { GameAction, GameState } from "../game/types";
 export type UndoMode = "all" | "turn";
+export interface GameSettings {
+  undoMode: UndoMode;
+  showLegalPoints: boolean;
+}
 export interface LocalGameOptions {
   undoMode?: UndoMode;
+  showLegalPoints?: boolean;
 }
 export class LocalGameSession {
   game: GameState;
   private snapshots: GameState[] = [];
   private pendingSnapshot: GameState | null = null;
   readonly undoMode: UndoMode;
+  readonly settings: GameSettings;
   constructor(initial = createGame(), options: LocalGameOptions = {}) {
     this.game = cloneState(initial);
     this.undoMode = options.undoMode ?? "all";
+    this.settings = {
+      undoMode: this.undoMode,
+      showLegalPoints: options.showLegalPoints ?? true,
+    };
   }
   get canUndo() {
     const snapshot = this.snapshots.at(-1);

@@ -3,16 +3,16 @@ import { lobby } from "./ui/lobby";
 import { localGameView } from "./ui/localGameView";
 import { watchTheme } from "./ui/theme";
 import { initializeLanguage } from "./i18n/i18n";
-import { LocalGameSession } from "./local/localGame";
+import { LocalGameSession, type LocalGameOptions } from "./local/localGame";
 watchTheme();
 initializeLanguage();
 const root = document.querySelector<HTMLElement>("#app")!;
 let activeSession: LocalGameSession | undefined;
-const start = (undoMode?: import("./local/localGame").UndoMode) => {
+const start = (options?: LocalGameOptions) => {
   activeSession = localGameView(
     root,
     home,
-    activeSession ?? new LocalGameSession(undefined, { undoMode }),
+    activeSession ?? new LocalGameSession(undefined, options),
   );
 };
 const home = () => {

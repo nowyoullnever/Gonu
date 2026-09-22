@@ -197,6 +197,9 @@ header > span {
   max-width: 600px;
   margin: auto;
 }
+#board-host.shake {
+  animation: invalid-shake 190ms ease-out;
+}
 .board {
   position: relative;
   aspect-ratio: 1;
@@ -219,10 +222,12 @@ header > span {
   stroke: var(--road);
   stroke-width: 1.4;
 }
-.road.last {
+.road.drawing {
   stroke: var(--text);
   stroke-width: 2;
-  animation: appear 0.18s ease-out;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw-road 220ms ease-out forwards;
 }
 .preview {
   stroke: var(--text);
@@ -429,7 +434,9 @@ dialog h2 {
   font-size: 0.75rem;
   color: var(--muted);
 }
-.theme-options {
+.theme-options,
+.sound-options,
+.bgm-options {
   display: flex;
   justify-content: center;
   gap: 8px;
@@ -450,7 +457,9 @@ html[lang="ko"] .lesson p {
   line-height: 1.9;
   word-break: keep-all;
 }
-.theme-options button {
+.theme-options button,
+.sound-options button,
+.bgm-options button {
   font-size: 0.8rem;
 }
 .game-option-title {
@@ -489,6 +498,15 @@ html[lang="ko"] .lesson p {
     opacity: 0;
     scale: 0.75;
   }
+}
+@keyframes draw-road {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes invalid-shake {
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
 }
 @media (max-width: 480px) {
   main {
@@ -538,6 +556,11 @@ html[lang="ko"] .lesson p {
   }
   .stone.captured {
     opacity: 0;
+  }
+  #board-host.shake {
+    animation: none !important;
+    outline: 2px solid var(--text);
+    outline-offset: 3px;
   }
 }
 

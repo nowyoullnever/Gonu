@@ -9,6 +9,7 @@ import { BoardView } from "./boardView";
 import { openTutorial } from "./tutorial";
 import { openSettings } from "./lobby";
 import { openDialog } from "./dialog";
+import { audio } from "./audio";
 
 let removeGameplayShortcuts = () => {};
 
@@ -66,7 +67,7 @@ export function localGameView(
         (x) =>
           s.pending?.type === "capture" && s.pending.targetIds.includes(x.id),
       );
-    if (!selected) return [];
+    if (!selected || !session.settings.showLegalPoints) return [];
     return mode === "road"
       ? getLegalRoadTargets(s, selected)
       : getLegalMoves(s, stoneAt(s, selected)?.id ?? "");
@@ -133,6 +134,9 @@ export function localGameView(
   function dispatch(action: GameAction) {
     try {
       session.dispatch(action);
+      audio.beginFromInteraction();
+      if (action.type === "build-road") audio.playRoadDraw();
+      if (action.type === "move" || action.type === "reproduce") audio.playStone();
       selected = null;
       render();
     } catch (error) {
@@ -151,16 +155,25 @@ export function localGameView(
       if (stone) dispatch({ type: "capture", stoneId: stone.id });
       return;
     }
-    if (selected && samePoint(selected, p)) {
-      selected = null;
-      render();
-      return;
-    }
     if (mode === "road") {
       if (!selected) {
         selected = p;
         render();
-      } else dispatch({ type: "build-road", from: selected, to: p });
+      } else {
+        const error = roadError(s, selected, p);
+        if (error) {
+          el("instruction").textContent = `${t("action.invalidRoad")} · ${t(error)}`;
+          el("board-host").classList.remove("shake");
+          void el("board-host").offsetWidth;
+          el("board-host").classList.add("shake");
+          return;
+        }
+        dispatch({ type: "build-road", from: selected, to: p });
+      }
+    } else if (selected && samePoint(selected, p)) {
+      selected = null;
+      render();
+      return;
     } else if (stone?.player === s.currentPlayer) {
       selected = p;
       render();
@@ -169,7 +182,9 @@ export function localGameView(
     } else if (selected)
       dispatch({ type: "move", stoneId: stoneAt(s, selected)!.id, to: p });
   }
-  function hover(p: Point | null) {
+  function hover(p: Point | null, pointer = false) {
+    if (pointer && mode === "road" && !session.game.pending && !session.game.winner)
+      audio.playRoadHover();
     if (
       mode !== "road" ||
       !selected ||

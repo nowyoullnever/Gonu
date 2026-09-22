@@ -18,6 +18,10 @@ export const en = {
     done: "DONE",
     cancel: "CANCEL SELECTION",
     startGame: "START GAME",
+    on: "ON",
+    off: "OFF",
+    sound: "SOUND",
+    bgm: "BGM",
   },
   lobby: {
     tagline: "SHARED ROADS. NEW POSSIBILITIES.",
@@ -41,6 +45,7 @@ export const en = {
     undoMode: "UNDO MODE",
     fullGame: "FULL GAME",
     currentTurnOnly: "CURRENT TURN ONLY",
+    showLegalPoints: "SHOW LEGAL POINTS",
   },
   action: {
     move: "MOVE",
@@ -61,6 +66,7 @@ export const en = {
     selectSecondPoint: "SELECT SECOND POINT",
     moveShortcut: "MOVE — Z",
     roadShortcut: "ROAD — X",
+    invalidRoad: "INVALID ROAD",
   },
   capture: {
     choose: "CHOOSE A STONE TO CAPTURE — select one × target",

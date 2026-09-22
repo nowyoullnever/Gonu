@@ -8,7 +8,7 @@ export interface BoardInteraction {
   selected: Point | null;
   targets: Point[];
   click: (p: Point) => void;
-  hover: (p: Point | null) => void;
+  hover: (p: Point | null, pointer?: boolean) => void;
 }
 export class BoardView {
   readonly element = document.createElement("div");
@@ -18,6 +18,7 @@ export class BoardView {
   private targets = document.createElement("div");
   private buttons: HTMLButtonElement[] = [];
   private pieceNodes = new Map<string, HTMLElement>();
+  private animatedRevision = -1;
   constructor(private interaction: BoardInteraction) {
     this.element.className = "board";
     this.element.setAttribute("aria-label", t("a11y.board"));
@@ -34,7 +35,7 @@ export class BoardView {
       button.style.left = `${pos.x / 5.5}%`;
       button.style.top = `${pos.y / 5.5}%`;
       button.onclick = () => this.interaction.click(p);
-      button.onpointerenter = () => this.interaction.hover(p);
+      button.onpointerenter = () => this.interaction.hover(p, true);
       button.onfocus = () => this.interaction.hover(p);
       button.onkeydown = (e) => {
         const deltas: Record<string, number> = {
@@ -90,11 +91,13 @@ export class BoardView {
       if (
         s.lastAction?.type === "build-road" &&
         samePoint(s.lastAction.from, road.from) &&
-        samePoint(s.lastAction.to, road.to)
+        samePoint(s.lastAction.to, road.to) &&
+        this.animatedRevision !== s.revision
       )
-        line.classList.add("last");
+        line.classList.add("drawing");
       this.roads.append(line);
     }
+    this.animatedRevision = s.revision;
     this.roads.append(this.preview);
     this.preview.style.display = "none";
     for (const [id, node] of this.pieceNodes)

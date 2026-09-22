@@ -3,7 +3,7 @@ import { beforeEach, expect, it } from "vitest";
 import { lobby } from "../src/ui/lobby";
 import { localGameView } from "../src/ui/localGameView";
 import { openTutorial } from "../src/ui/tutorial";
-import { LocalGameSession, type UndoMode } from "../src/local/localGame";
+import { LocalGameSession, type LocalGameOptions } from "../src/local/localGame";
 import { createGame } from "../src/game/gameState";
 import { setLanguage } from "../src/i18n/i18n";
 
@@ -20,9 +20,9 @@ beforeEach(() => {
 });
 
 it("chooses an undo mode before starting a local match", () => {
-  let mode: UndoMode | undefined;
+  let options: LocalGameOptions | undefined;
   const root = document.querySelector("main")!;
-  lobby(root, (undoMode) => (mode = undoMode));
+  lobby(root, (selected) => (options = selected));
   root.querySelector<HTMLButtonElement>("#new-game")!.click();
   const dialog = document.querySelector("dialog")!;
   expect(dialog.textContent).toContain("UNDO MODE");
@@ -30,7 +30,7 @@ it("chooses an undo mode before starting a local match", () => {
   expect(dialog.textContent).toContain("CURRENT TURN ONLY");
   dialog.querySelector<HTMLButtonElement>('[data-undo-mode="turn"]')!.click();
   dialog.querySelector<HTMLButtonElement>("#local-start")!.click();
-  expect(mode).toBe("turn");
+  expect(options).toEqual({ undoMode: "turn", showLegalPoints: true });
 });
 
 it("switches MOVE and ROAD modes with plain Z and X only when gameplay is available", () => {
